@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from "react";
-import Example from "./example";
+import Graph from "./Graph";
 
 export default function App() {
   const ref = useRef<HTMLDivElement>(null);
@@ -8,8 +8,8 @@ export default function App() {
   const updateDimensions = () => {
     if (ref.current) {
       setDimensions({
-        width: ref.current.clientWidth ?? 0,
-        height: ref.current.clientHeight ?? 0,
+        width: Math.max(ref.current.clientWidth ?? 0, 1000),
+        height: Math.max(ref.current.clientHeight ?? 0, 500),
       });
     }
   };
@@ -24,7 +24,7 @@ export default function App() {
 
   return (
     <div ref={ref} className="h-screen w-screen">
-      <Example width={dimensions.width} height={dimensions.height} />
+      <Graph width={dimensions.width} height={dimensions.height} />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Graph from "./Graph";
 
 export default function App() {
@@ -8,8 +8,8 @@ export default function App() {
   const updateDimensions = () => {
     if (ref.current) {
       setDimensions({
-        width: Math.max(ref.current.clientWidth ?? 0, 1000),
-        height: Math.max(ref.current.clientHeight ?? 0, 500),
+        width: ref.current.clientWidth ?? 0,
+        height: ref.current.clientHeight ?? 0,
       });
     }
   };
@@ -23,7 +23,7 @@ export default function App() {
   }, []);
 
   return (
-    <div ref={ref} className="h-screen w-screen">
+    <div ref={ref} className="h-screen w-screen overflow-hidden">
       <Graph width={dimensions.width} height={dimensions.height} />
     </div>
   );

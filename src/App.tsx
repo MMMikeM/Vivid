@@ -1,5 +1,5 @@
-import { useRef, useEffect, useState } from "react";
-import Example from "./example";
+import { useEffect, useRef, useState } from "react";
+import Graph from "./Graph";
 
 export default function App() {
   const ref = useRef<HTMLDivElement>(null);
@@ -23,8 +23,8 @@ export default function App() {
   }, []);
 
   return (
-    <div ref={ref} className="h-screen w-screen">
-      <Example width={dimensions.width} height={dimensions.height} />
+    <div ref={ref} className="h-screen w-screen overflow-hidden">
+      <Graph width={dimensions.width} height={dimensions.height} />
     </div>
   );
 }

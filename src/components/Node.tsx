@@ -1,21 +1,16 @@
 import React, { useCallback } from "react";
 import { Group } from "@visx/group";
-import { Tree, hierarchy } from "@visx/hierarchy";
-import { HierarchyPointNode } from "@visx/hierarchy/lib/types";
-import { LinkVerticalLine } from "@visx/shape";
-import { LinearGradient } from "@visx/gradient";
 import { Text } from "@visx/text";
-import { ApiNode, state, tree } from "./store/tree";
-import { theme } from "./constants";
-import { useSnapshot } from "valtio";
-import { getEntries } from "./utils/objects";
+import { ApiTreeNode, dictState } from "../store/tree";
+import { getEntries } from "../utils/objects";
+import { theme } from "../constants";
+import { HierarchyPointNode } from "@visx/hierarchy/lib/types";
 import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { localPoint } from "@visx/event";
 
-const { background, indigo, white, green, lightpurple, blue, orange, pink } =
-  theme;
+export type HierarchyNode = HierarchyPointNode<ApiTreeNode>;
 
-type HierarchyNode = HierarchyPointNode<ApiNode>;
+const { indigo, background, blue, green, white } = theme;
 
 const textTruncate: React.CSSProperties = {
   overflow: "hidden",
@@ -27,21 +22,26 @@ const textTruncate: React.CSSProperties = {
 
 const updateNode = (
   node: HierarchyNode,
-  newNode: Omit<Partial<ApiNode>, "node_id">
+  newNode: Omit<Partial<ApiTreeNode>, "node_id">
 ) => {
-  const { node_id } = node.data;
+  const { id } = node.data;
   for (const [key, value] of getEntries(newNode)) {
     //@ts-expect-error This works, but the proxy makes the types confused
-    state[node_id][key] = value;
+    dictState[id][key] = value;
   }
+};
+const handleClick = (node: HierarchyNode) => {
+  updateNode(node, { name: Math.random().toFixed(2).toString() + " " });
 };
 
 function RootNode({ node }: { node: HierarchyNode }) {
-  const handleClick = () => {
-    updateNode(node, { name: Math.random().toFixed(2).toString() });
-  };
   return (
-    <Group top={node.y} left={node.x} onClick={handleClick}>
+    <Group
+      top={node.y}
+      left={node.x}
+      onClick={() => handleClick(node)}
+      className="cursor-pointer"
+    >
       <circle r={12} fill="url('#lg')" />
       <text
         dy=".33em"
@@ -56,7 +56,6 @@ function RootNode({ node }: { node: HierarchyNode }) {
     </Group>
   );
 }
-
 function ParentNode({ node }: { node: HierarchyNode }) {
   const [rectHeight, rectWidth] = [24, 120];
   const centerX = -rectWidth / 2;
@@ -85,21 +84,20 @@ function ParentNode({ node }: { node: HierarchyNode }) {
     [showTooltip]
   );
 
-  const handleClick = () => {
-    updateNode(node, {
-      name: Math.random().toFixed(2).toString() + " ",
-    });
-  };
-
   return (
-    <Group top={node.y} left={node.x} onClick={handleClick}>
+    <Group
+      top={node.y}
+      left={node.x}
+      onClick={() => handleClick(node)}
+      className="cursor-pointer"
+    >
       <rect
         onMouseOver={handleMouseOver}
         onMouseOut={hideTooltip}
         height={rectHeight}
         width={rectWidth}
         y={centerY}
-        x={centerX} // Update X position based on the new width
+        x={centerX}
         fill={background}
         stroke={blue}
         strokeWidth={1}
@@ -140,8 +138,7 @@ function ParentNode({ node }: { node: HierarchyNode }) {
     </Group>
   );
 }
-/** Handles rendering Root, Parent, and other Nodes. */
-function Node({ node }: { node: HierarchyNode }) {
+export function Node({ node }: { node: HierarchyNode }) {
   const width = 40;
   const height = 20;
   const centerX = -width / 2;
@@ -175,7 +172,13 @@ function Node({ node }: { node: HierarchyNode }) {
   if (isParent) return <ParentNode node={node} />;
 
   return (
-    <Group top={node.y} left={node.x}>
+    <Group
+      className="cursor-pointer"
+      top={node.y}
+      left={node.x}
+      style={{ cursor: "pointer !important" }}
+      onClick={() => handleClick(node)}
+    >
       <rect
         onMouseOver={handleMouseOver}
         onMouseOut={hideTooltip}
@@ -221,54 +224,5 @@ function Node({ node }: { node: HierarchyNode }) {
         {node.data.name}
       </text>
     </Group>
-  );
-}
-
-const defaultMargin = { top: 80, left: 80, right: 80, bottom: 80 };
-
-export type TreeProps = {
-  width: number;
-  height: number;
-  margin?: { top: number; right: number; bottom: number; left: number };
-};
-
-export default function Example({
-  width,
-  height,
-  margin = defaultMargin,
-}: TreeProps) {
-  const data = hierarchy(useSnapshot(tree));
-  const yMax = height - margin.top - margin.bottom;
-  const xMax = width - margin.left - margin.right;
-
-  return width < 10 ? null : (
-    <svg width={width} height={height}>
-      <LinearGradient id="lg" from={orange} to={pink} />
-      <rect width={width} height={height} fill={background} />
-      <Tree<ApiNode>
-        root={data}
-        size={[xMax, yMax]}
-        separation={(a, b) => (a.parent === b.parent ? 2 : 3)}
-      >
-        {(tree) => {
-          return (
-            <Group top={margin.top} left={margin.left}>
-              {tree.links().map((link, i) => (
-                <LinkVerticalLine
-                  key={`link-${i}`}
-                  data={link}
-                  stroke={lightpurple}
-                  strokeWidth="1"
-                  fill="none"
-                />
-              ))}
-              {tree.descendants().map((node, i) => (
-                <Node key={`node-${i}`} node={node} />
-              ))}
-            </Group>
-          );
-        }}
-      </Tree>
-    </svg>
   );
 }

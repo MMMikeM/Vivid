@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { Group } from "@visx/group";
 import { Tree, hierarchy } from "@visx/hierarchy";
 import { HierarchyPointNode } from "@visx/hierarchy/lib/types";
-import { LinkHorizontal } from "@visx/shape";
+import { LinkVerticalLine } from "@visx/shape";
 import { LinearGradient } from "@visx/gradient";
 
 const peach = "#fd9b93";
@@ -64,7 +64,7 @@ const rawTree: TreeNode = {
 
 function RootNode({ node }: { node: HierarchyNode }) {
   return (
-    <Group top={node.x} left={node.y}>
+    <Group top={node.y} left={node.x}>
       <circle r={12} fill="url('#lg')" />
       <text
         dy=".33em"
@@ -87,7 +87,7 @@ function ParentNode({ node }: { node: HierarchyNode }) {
   const centerY = -height / 2;
 
   return (
-    <Group top={node.x} left={node.y}>
+    <Group top={node.y} left={node.x}>
       <rect
         height={height}
         width={width}
@@ -127,7 +127,7 @@ function Node({ node }: { node: HierarchyNode }) {
   if (isParent) return <ParentNode node={node} />;
 
   return (
-    <Group top={node.x} left={node.y}>
+    <Group top={node.y} left={node.x}>
       <rect
         height={height}
         width={width}
@@ -157,7 +157,7 @@ function Node({ node }: { node: HierarchyNode }) {
   );
 }
 
-const defaultMargin = { top: 10, left: 80, right: 80, bottom: 10 };
+const defaultMargin = { top: 80, left: 80, right: 80, bottom: 80 };
 
 export type TreeProps = {
   width: number;
@@ -178,11 +178,11 @@ export default function Example({
     <svg width={width} height={height}>
       <LinearGradient id="lg" from={peach} to={pink} />
       <rect width={width} height={height} rx={14} fill={background} />
-      <Tree<TreeNode> root={data} size={[yMax, xMax]}>
+      <Tree<TreeNode> root={data} size={[xMax, yMax]}>
         {(tree) => (
           <Group top={margin.top} left={margin.left}>
             {tree.links().map((link, i) => (
-              <LinkHorizontal
+              <LinkVerticalLine
                 key={`link-${i}`}
                 data={link}
                 stroke={lightpurple}

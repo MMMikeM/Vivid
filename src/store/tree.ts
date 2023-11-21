@@ -30,7 +30,7 @@ export type ApiTreeNode = TreeNodeBase<ApiObj>;
 
 const getId = () => Math.floor(Math.random() * 10000);
 
-export const initialState: OldNode = {
+const initialState: OldNode = {
   name: "T",
   id: getId(),
   children: [
@@ -153,23 +153,24 @@ const arrayToDict = (nodes: ApiListNode[]): Record<number, ApiListNode> =>
     return acc;
   }, {} as Record<number, ApiListNode>);
 
-// const duplicateNodes = (
-//   nodes: Record<number, ApiListNode>
-// ): Record<number, ApiListNode> => {
-//   const newNodes = { ...nodes };
-//   Object.values(nodes).forEach((node) => {
-//     if (node.parent === undefined) {
-//       return;
-//     }
-//     const newNode = { ...node };
-//     newNode.id = getId();
-//     newNodes[newNode.id] = newNode;
-//     if (newNode.parent) {
-//       newNodes[newNode.parent].children?.push(newNode.id);
-//     }
-//   });
-//   return newNodes;
-// };
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const duplicateNodes = (
+  nodes: Record<number, ApiListNode>
+): Record<number, ApiListNode> => {
+  const newNodes = { ...nodes };
+  Object.values(nodes).forEach((node) => {
+    if (node.parent === undefined) {
+      return;
+    }
+    const newNode = { ...node };
+    newNode.id = getId();
+    newNodes[newNode.id] = newNode;
+    if (newNode.parent) {
+      newNodes[newNode.parent].children?.push(newNode.id);
+    }
+  });
+  return newNodes;
+};
 
 export const dictToTree = (nodes: Record<number, ApiListNode>): ApiTreeNode => {
   const nodeList = Object.values(nodes);

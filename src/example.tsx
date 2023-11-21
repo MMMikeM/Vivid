@@ -1,70 +1,36 @@
-import { useMemo } from "react";
 import { Group } from "@visx/group";
 import { Tree, hierarchy } from "@visx/hierarchy";
 import { HierarchyPointNode } from "@visx/hierarchy/lib/types";
 import { LinkVerticalLine } from "@visx/shape";
 import { LinearGradient } from "@visx/gradient";
+import { Text } from "@visx/text";
+import { ApiNode, state, tree } from "./store/tree";
+import { theme } from "./constants";
+import { useSnapshot } from "valtio";
+import { getEntries } from "./utils/objects";
 
-const peach = "#fd9b93";
-const pink = "#fe6e9e";
-const blue = "#03c0dc";
-const green = "#26deb0";
-const plum = "#71248e";
-const lightpurple = "#374469";
-const white = "#ffffff";
-export const background = "#272b4d";
+const { background, indigo, white, green, lightpurple, blue, orange, pink } =
+  theme;
 
-interface TreeNode {
-  name: string;
-  children?: this[];
-}
+type HierarchyNode = HierarchyPointNode<ApiNode>;
 
-type HierarchyNode = HierarchyPointNode<TreeNode>;
-
-const rawTree: TreeNode = {
-  name: "T",
-  children: [
-    {
-      name: "A",
-      children: [
-        { name: "A1" },
-        { name: "A2" },
-        { name: "A3" },
-        {
-          name: "C",
-          children: [
-            {
-              name: "C1",
-            },
-            {
-              name: "D",
-              children: [
-                {
-                  name: "D1",
-                },
-                {
-                  name: "D2",
-                },
-                {
-                  name: "D3",
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-    { name: "Z" },
-    {
-      name: "B",
-      children: [{ name: "B1" }, { name: "B2" }, { name: "B3" }],
-    },
-  ],
+const updateNode = (
+  node: HierarchyNode,
+  newNode: Omit<Partial<ApiNode>, "node_id">
+) => {
+  const { node_id } = node.data;
+  for (const [key, value] of getEntries(newNode)) {
+    //@ts-expect-error This works, but the proxy makes the types confused
+    state[node_id][key] = value;
+  }
 };
 
 function RootNode({ node }: { node: HierarchyNode }) {
+  const handleClick = () => {
+    updateNode(node, { name: Math.random().toFixed(2).toString() });
+  };
   return (
-    <Group top={node.y} left={node.x}>
+    <Group top={node.y} left={node.x} onClick={handleClick}>
       <circle r={12} fill="url('#lg')" />
       <text
         dy=".33em"
@@ -72,7 +38,7 @@ function RootNode({ node }: { node: HierarchyNode }) {
         fontFamily="Arial"
         textAnchor="middle"
         style={{ pointerEvents: "none" }}
-        fill={plum}
+        fill={indigo}
       >
         {node.data.name}
       </text>
@@ -81,39 +47,45 @@ function RootNode({ node }: { node: HierarchyNode }) {
 }
 
 function ParentNode({ node }: { node: HierarchyNode }) {
-  const width = 40;
-  const height = 20;
-  const centerX = -width / 2;
-  const centerY = -height / 2;
+  const [rectHeight, rectWidth] = [24, 120];
+  const centerX = -rectWidth / 2;
+  const centerY = -rectHeight / 2;
+
+  const name = node.data.name.repeat(5);
+
+  const handleClick = () => {
+    updateNode(node, {
+      name: Math.random().toFixed(2).toString() + " ",
+    });
+  };
 
   return (
-    <Group top={node.y} left={node.x}>
+    <Group top={node.y} left={node.x} onClick={handleClick}>
       <rect
-        height={height}
-        width={width}
+        height={rectHeight}
+        width={rectWidth}
         y={centerY}
-        x={centerX}
+        x={centerX} // Update X position based on the new width
         fill={background}
         stroke={blue}
         strokeWidth={1}
-        onClick={() => {
-          alert(`clicked: ${JSON.stringify(node.data.name)}`);
-        }}
       />
-      <text
-        dy=".33em"
-        fontSize={9}
-        fontFamily="Arial"
-        textAnchor="middle"
+      <Text
+        verticalAnchor="start"
+        x={centerX + 4}
+        y={centerY + 4}
+        fontSize={10}
+        fontFamily="monospace"
+        textAnchor="start"
         style={{ pointerEvents: "none" }}
+        width={rectWidth - 8}
         fill={white}
       >
-        {node.data.name}
-      </text>
+        {name}
+      </Text>
     </Group>
   );
 }
-
 /** Handles rendering Root, Parent, and other Nodes. */
 function Node({ node }: { node: HierarchyNode }) {
   const width = 40;
@@ -139,14 +111,11 @@ function Node({ node }: { node: HierarchyNode }) {
         strokeDasharray="2,2"
         strokeOpacity={0.6}
         rx={10}
-        onClick={() => {
-          alert(`clicked: ${JSON.stringify(node.data.name)}`);
-        }}
       />
       <text
         dy=".33em"
         fontSize={9}
-        fontFamily="Arial"
+        fontFamily="monospace"
         textAnchor="middle"
         fill={green}
         style={{ pointerEvents: "none" }}
@@ -170,31 +139,37 @@ export default function Example({
   height,
   margin = defaultMargin,
 }: TreeProps) {
-  const data = useMemo(() => hierarchy(rawTree), []);
+  const data = hierarchy(useSnapshot(tree));
   const yMax = height - margin.top - margin.bottom;
   const xMax = width - margin.left - margin.right;
 
   return width < 10 ? null : (
     <svg width={width} height={height}>
-      <LinearGradient id="lg" from={peach} to={pink} />
-      <rect width={width} height={height} rx={14} fill={background} />
-      <Tree<TreeNode> root={data} size={[xMax, yMax]}>
-        {(tree) => (
-          <Group top={margin.top} left={margin.left}>
-            {tree.links().map((link, i) => (
-              <LinkVerticalLine
-                key={`link-${i}`}
-                data={link}
-                stroke={lightpurple}
-                strokeWidth="1"
-                fill="none"
-              />
-            ))}
-            {tree.descendants().map((node, i) => (
-              <Node key={`node-${i}`} node={node} />
-            ))}
-          </Group>
-        )}
+      <LinearGradient id="lg" from={orange} to={pink} />
+      <rect width={width} height={height} fill={background} />
+      <Tree<ApiNode>
+        root={data}
+        size={[xMax, yMax]}
+        separation={(a, b) => (a.parent === b.parent ? 2 : 3)}
+      >
+        {(tree) => {
+          return (
+            <Group top={margin.top} left={margin.left}>
+              {tree.links().map((link, i) => (
+                <LinkVerticalLine
+                  key={`link-${i}`}
+                  data={link}
+                  stroke={lightpurple}
+                  strokeWidth="1"
+                  fill="none"
+                />
+              ))}
+              {tree.descendants().map((node, i) => (
+                <Node key={`node-${i}`} node={node} />
+              ))}
+            </Group>
+          );
+        }}
       </Tree>
     </svg>
   );

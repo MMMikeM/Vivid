@@ -25,11 +25,12 @@ export default function Graph({
 }: TreeProps) {
   const renderWidth = Math.max(width, 1920);
   const renderHeight = Math.max(height, 1080);
-  console.log(renderWidth, renderHeight);
-  const snapshot = useSnapshot(state.dictState);
-  const data = hierarchy(state.dictToTree(snapshot));
+
   const yMax = renderWidth - 2 * margin.y;
   const xMax = renderHeight - 2 * margin.x;
+
+  const snapshot = useSnapshot(state.dictState);
+  const data = hierarchy(state.dictToTree(snapshot));
 
   if (width < 10) return null;
 

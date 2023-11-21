@@ -1,3 +1,4 @@
+import React, { useCallback } from "react";
 import { Group } from "@visx/group";
 import { Tree, hierarchy } from "@visx/hierarchy";
 import { HierarchyPointNode } from "@visx/hierarchy/lib/types";
@@ -8,11 +9,21 @@ import { ApiNode, state, tree } from "./store/tree";
 import { theme } from "./constants";
 import { useSnapshot } from "valtio";
 import { getEntries } from "./utils/objects";
+import { useTooltip, useTooltipInPortal } from "@visx/tooltip";
+import { localPoint } from "@visx/event";
 
 const { background, indigo, white, green, lightpurple, blue, orange, pink } =
   theme;
 
 type HierarchyNode = HierarchyPointNode<ApiNode>;
+
+const textTruncate: React.CSSProperties = {
+  overflow: "hidden",
+  display: "-webkit-box",
+  WebkitLineClamp: 3,
+  WebkitBoxOrient: "vertical",
+  textOverflow: "ellipsis",
+};
 
 const updateNode = (
   node: HierarchyNode,
@@ -53,6 +64,27 @@ function ParentNode({ node }: { node: HierarchyNode }) {
 
   const name = node.data.name.repeat(5);
 
+  const { TooltipInPortal: ToolTip } = useTooltipInPortal({
+    // use TooltipWithBounds
+    detectBounds: true,
+    // when tooltip containers are scrolled, this will correctly update the Tooltip position
+    scroll: true,
+  });
+
+  const { tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
+    useTooltip();
+
+  const handleMouseOver = useCallback(
+    (event: React.MouseEvent) => {
+      const coords = localPoint(event);
+      showTooltip({
+        tooltipLeft: coords?.x,
+        tooltipTop: coords?.y,
+      });
+    },
+    [showTooltip]
+  );
+
   const handleClick = () => {
     updateNode(node, {
       name: Math.random().toFixed(2).toString() + " ",
@@ -62,6 +94,8 @@ function ParentNode({ node }: { node: HierarchyNode }) {
   return (
     <Group top={node.y} left={node.x} onClick={handleClick}>
       <rect
+        onMouseOver={handleMouseOver}
+        onMouseOut={hideTooltip}
         height={rectHeight}
         width={rectWidth}
         y={centerY}
@@ -70,6 +104,26 @@ function ParentNode({ node }: { node: HierarchyNode }) {
         stroke={blue}
         strokeWidth={1}
       />
+      {tooltipOpen && (
+        <ToolTip
+          // set this to random so it correctly updates with parent bounds
+          key={Math.random()}
+          top={tooltipTop}
+          left={tooltipLeft}
+        >
+          <div style={{ width: 200 }}>
+            <p>
+              <strong>Name: {node.data.name}</strong>
+            </p>
+            <p>Team: Commerce</p>
+            <p style={textTruncate}>
+              Description: Lorem ipsum dolor, sit amet consectetur adipisicing
+              elit. Odit soluta totam quia at a fugiat exercitationem neque
+              necessitatibus tempora reprehenderit.
+            </p>
+          </div>
+        </ToolTip>
+      )}
       <Text
         verticalAnchor="start"
         x={centerX + 4}
@@ -95,12 +149,36 @@ function Node({ node }: { node: HierarchyNode }) {
   const isRoot = node.depth === 0;
   const isParent = !!node.children;
 
+  const { TooltipInPortal: ToolTip } = useTooltipInPortal({
+    // use TooltipWithBounds
+    detectBounds: true,
+    // when tooltip containers are scrolled, this will correctly update the Tooltip position
+    scroll: true,
+  });
+
+  const { tooltipLeft, tooltipTop, tooltipOpen, showTooltip, hideTooltip } =
+    useTooltip();
+
+  const handleMouseOver = useCallback(
+    (event: React.MouseEvent) => {
+      const coords = localPoint(event);
+      showTooltip({
+        tooltipLeft: coords?.x,
+        tooltipTop: coords?.y,
+        // tooltipData: node?.data as ApiNode,
+      });
+    },
+    [showTooltip]
+  );
+
   if (isRoot) return <RootNode node={node} />;
   if (isParent) return <ParentNode node={node} />;
 
   return (
     <Group top={node.y} left={node.x}>
       <rect
+        onMouseOver={handleMouseOver}
+        onMouseOut={hideTooltip}
         height={height}
         width={width}
         y={centerY}
@@ -112,6 +190,26 @@ function Node({ node }: { node: HierarchyNode }) {
         strokeOpacity={0.6}
         rx={10}
       />
+      {tooltipOpen && (
+        <ToolTip
+          // set this to random so it correctly updates with parent bounds
+          key={Math.random()}
+          top={tooltipTop}
+          left={tooltipLeft}
+        >
+          <div style={{ width: 200 }}>
+            <p>
+              <strong>Name: {node.data.name}</strong>
+            </p>
+            <p>Team: Commerce</p>
+            <p style={textTruncate}>
+              Description: Lorem ipsum dolor, sit amet consectetur adipisicing
+              elit. Odit soluta totam quia at a fugiat exercitationem neque
+              necessitatibus tempora reprehenderit.
+            </p>
+          </div>
+        </ToolTip>
+      )}
       <text
         dy=".33em"
         fontSize={9}

@@ -1,38 +1,36 @@
 import { proxy } from "valtio";
 
-export type Node = {
+type OldNode = TreeNodeBase<{
   name: string;
+}>;
+
+type TreeNodeBase<T> = {
   id: number;
-  children?: Node[];
+  children?: TreeNodeBase<T>[];
+  parent?: number;
+} & T;
+
+type ListNodeBase<T> = {
+  id: number;
+  children?: number[];
+  parent?: number;
+} & T;
+
+type ApiObj = {
+  name: string;
+  type?: string;
+  description?: string;
+  team?: string;
+  documentationUrl?: string;
 };
 
-export type ApiNode = {
-  node_id: number;
-  name: string;
-  children: number[] | ApiNode[];
-  parent: number | null;
-};
+type ApiListNode = ListNodeBase<ApiObj>;
+
+export type ApiTreeNode = TreeNodeBase<ApiObj>;
 
 const getId = () => Math.floor(Math.random() * 10000);
 
-const flattenTree = (node: Node, parentId?: number, graph: ApiNode[] = []) => {
-  const newNode = {
-    node_id: node.id,
-    name: node.name,
-    children: node.children?.map((child) => child.id) || [],
-    parent: parentId!,
-  };
-
-  graph.push(newNode);
-
-  node.children?.forEach((child) => {
-    flattenTree(child, node.id, graph);
-  });
-
-  return graph;
-};
-
-export const initialState: Node = {
+export const initialState: OldNode = {
   name: "T",
   id: getId(),
   children: [
@@ -80,38 +78,131 @@ export const initialState: Node = {
       children: [
         { name: "B1", id: getId() },
         { name: "B2", id: getId() },
-        { name: "B3", id: getId() },
+        {
+          name: "B3",
+          id: getId(),
+          children: [
+            { name: "A1", id: getId() },
+            { name: "A2", id: getId() },
+            { name: "A3", id: getId() },
+            { name: "A1", id: getId() },
+            { name: "A2", id: getId() },
+            { name: "A3", id: getId() },
+            { name: "A1", id: getId() },
+            { name: "A2", id: getId() },
+            { name: "A3", id: getId() },
+            {
+              name: "C",
+              id: getId(),
+              children: [
+                {
+                  name: "C1",
+                  id: getId(),
+                },
+                {
+                  name: "D",
+                  id: getId(),
+                  children: [
+                    {
+                      id: getId(),
+                      name: "D1",
+                    },
+                    {
+                      id: getId(),
+                      name: "D2",
+                    },
+                    {
+                      id: getId(),
+                      name: "D3",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
       ],
     },
   ],
 };
 
-const flatState = flattenTree(initialState);
+const flattenTree = (
+  { id, name, children }: OldNode,
+  parent?: number,
+  nodeList: ApiListNode[] = []
+): ApiListNode[] => {
+  const newNode: ApiListNode = {
+    id,
+    name,
+    parent,
+    children: children?.map((child) => child.id),
+  };
 
-const nodes: Record<number, ApiNode> = flatState.reduce((acc, node) => {
-  acc[node.node_id] = node;
-  return acc;
-}, {} as Record<number, ApiNode>);
+  nodeList.push(newNode);
 
-export const mapToTree = (nodes: Record<number, ApiNode>): ApiNode => {
-  for (const node of Object.values(nodes)) {
-    if (node.children) {
-      node.children = node.children.map((childId) => nodes[childId as number]);
-    }
-  }
+  children?.forEach((child) => {
+    flattenTree(child, id, nodeList);
+  });
 
-  const root = Object.values(nodes).filter((node) => !node.parent);
+  return nodeList;
+};
 
+const arrayToDict = (nodes: ApiListNode[]): Record<number, ApiListNode> =>
+  nodes.reduce((acc, node) => {
+    acc[node.id] = { ...node };
+    return acc;
+  }, {} as Record<number, ApiListNode>);
+
+// const duplicateNodes = (
+//   nodes: Record<number, ApiListNode>
+// ): Record<number, ApiListNode> => {
+//   const newNodes = { ...nodes };
+//   Object.values(nodes).forEach((node) => {
+//     if (node.parent === undefined) {
+//       return;
+//     }
+//     const newNode = { ...node };
+//     newNode.id = getId();
+//     newNodes[newNode.id] = newNode;
+//     if (newNode.parent) {
+//       newNodes[newNode.parent].children?.push(newNode.id);
+//     }
+//   });
+//   return newNodes;
+// };
+
+export const dictToTree = (nodes: Record<number, ApiListNode>): ApiTreeNode => {
+  const nodeList = Object.values(nodes);
+
+  const root = nodeList.filter((node) => {
+    return node.parent == undefined;
+  });
   if (root.length === 0) {
-    return {} as ApiNode;
+    throw new Error("No root nodes found");
   }
   if (root.length > 1) {
     throw new Error("Multiple root nodes");
   }
 
-  return root[0];
+  const rootNode: ApiTreeNode = {
+    ...root[0],
+    children: [],
+  };
+
+  const buildTree = (nodeId: number): ApiTreeNode => {
+    const node = nodes[nodeId];
+
+    const treeNode: ApiTreeNode = {
+      ...node,
+      children: node.children?.map(buildTree),
+    };
+
+    return treeNode;
+  };
+
+  return buildTree(rootNode.id);
 };
 
-export const state = proxy(nodes);
-
-export const tree = mapToTree(state);
+const flat = flattenTree(initialState);
+const dictOfNodes = arrayToDict(flat);
+export const dictState = proxy(dictOfNodes);

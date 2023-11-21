@@ -1,12 +1,12 @@
+import { LinearGradient } from "@visx/gradient";
 import { Group } from "@visx/group";
 import { Tree, hierarchy } from "@visx/hierarchy";
 import { LinkVerticalLine } from "@visx/shape";
-import { LinearGradient } from "@visx/gradient";
-import * as state from "./store/tree";
-import { theme } from "./constants";
+import { Zoom } from "@visx/zoom";
 import { useSnapshot } from "valtio";
 import { Node } from "./components/Node";
-import { Zoom } from "@visx/zoom";
+import { theme } from "./constants";
+import * as state from "./store/tree";
 
 const { background, lightpurple, orange, pink } = theme;
 
@@ -23,17 +23,20 @@ export default function Graph({
   height,
   margin = defaultMargin,
 }: TreeProps) {
+  const renderWidth = Math.max(width, 1920);
+  const renderHeight = Math.max(height, 1080);
+  console.log(renderWidth, renderHeight);
   const snapshot = useSnapshot(state.dictState);
   const data = hierarchy(state.dictToTree(snapshot));
-  const yMax = height - 2 * margin.y;
-  const xMax = width - 2 * margin.x;
+  const yMax = renderWidth - 2 * margin.y;
+  const xMax = renderHeight - 2 * margin.x;
 
   if (width < 10) return null;
 
   return (
     <Zoom
-      width={width}
-      height={height}
+      width={renderWidth}
+      height={renderHeight}
       scaleXMin={0.5}
       scaleXMax={2}
       scaleYMin={0.5}
@@ -41,8 +44,8 @@ export default function Graph({
     >
       {(zoom) => (
         <svg
-          width={width}
-          height={height}
+          width={renderWidth}
+          height={renderHeight}
           style={{
             cursor: zoom.isDragging ? "grabbing" : "grab",
             touchAction: "none",
@@ -61,6 +64,7 @@ export default function Graph({
             <Tree<state.ApiTreeNode>
               root={data}
               size={[xMax, yMax]}
+              nodeSize={[60, 100]}
               separation={(a, b) => {
                 const siblings = a.parent?.children?.length ?? 0;
                 if (a.children) return 2;

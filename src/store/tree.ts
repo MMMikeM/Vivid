@@ -16,7 +16,7 @@ type ListNodeBase<T> = {
   parent?: number;
 } & T;
 
-type ApiObj = {
+export type ApiObj = {
   name: string;
   type?: string;
   description?: string;
@@ -206,4 +206,4 @@ export const dictToTree = (nodes: Record<number, ApiListNode>): ApiTreeNode => {
 
 const flat = flattenTree(initialState);
 const dictOfNodes = arrayToDict(flat);
-export const dictState = proxy(dictOfNodes);
+export const dictProxy = proxy(dictOfNodes);

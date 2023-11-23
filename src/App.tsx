@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Graph from "./Graph";
 import { Drawer } from "./components/Drawer";
+
+import { EditDialog } from "./components/EditDialog";
 
 export default function App() {
   const ref = useRef<HTMLDivElement>(null);
@@ -24,9 +26,12 @@ export default function App() {
   }, []);
 
   return (
-    <div ref={ref} className="h-screen w-screen overflow-hidden">
-      <Drawer />
-      <Graph width={dimensions.width} height={dimensions.height} />
+    <div>
+      <EditDialog />
+      <div ref={ref} className="h-screen w-screen overflow-hidden">
+        <Drawer />
+        <Graph width={dimensions.width} height={dimensions.height} />
+      </div>
     </div>
   );
 }

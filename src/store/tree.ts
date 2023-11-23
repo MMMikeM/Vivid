@@ -24,7 +24,7 @@ export type ApiObj = {
   documentationUrl?: string;
 };
 
-type ApiListNode = ListNodeBase<ApiObj>;
+export type ApiListNode = ListNodeBase<ApiObj>;
 
 export type ApiTreeNode = TreeNodeBase<ApiObj>;
 

@@ -6,6 +6,7 @@ import { theme } from "../constants";
 import { HierarchyPointNode } from "@visx/hierarchy/lib/types";
 import WithTooltip from "./HOC/Tooltip";
 import { handleClick } from "../utils/handleClick";
+import { dialogProxy } from "../store/dialog";
 
 export type HierarchyNode = HierarchyPointNode<ApiTreeNode>;
 
@@ -49,7 +50,9 @@ export function ParentNode({ node }: { node: HierarchyNode }) {
       <Group
         top={node.y}
         left={node.x}
-        onClick={() => handleClick(node)}
+        onClick={() => {
+          dialogProxy.open = true;
+        }}
         className="cursor-pointer"
       >
         <rect
@@ -100,7 +103,9 @@ export function Node({ node }: { node: HierarchyNode }) {
         top={node.y}
         left={node.x}
         style={{ cursor: "pointer !important" }}
-        onClick={() => handleClick(node)}
+        onClick={() => {
+          dialogProxy.open = true;
+        }}
       >
         <rect
           height={height}

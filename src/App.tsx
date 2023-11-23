@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import Graph from "./Graph";
+import { Drawer } from "./components/Drawer";
 
 export default function App() {
   const ref = useRef<HTMLDivElement>(null);
@@ -24,6 +25,7 @@ export default function App() {
 
   return (
     <div ref={ref} className="h-screen w-screen overflow-hidden">
+      <Drawer />
       <Graph width={dimensions.width} height={dimensions.height} />
     </div>
   );

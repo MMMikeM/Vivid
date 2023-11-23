@@ -45,6 +45,7 @@ export default function Graph({
     >
       {(zoom) => (
         <svg
+          className="z-10"
           width={renderWidth}
           height={renderHeight}
           style={{

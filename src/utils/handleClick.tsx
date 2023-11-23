@@ -1,4 +1,4 @@
-import { ApiTreeNode, dictState } from "../store/tree";
+import { ApiTreeNode, dictProxy } from "../store/tree";
 import { getEntries } from "./objects";
 import { HierarchyNode } from "../components/Node";
 
@@ -9,7 +9,7 @@ const updateNode = (
   const { id } = node.data;
   for (const [key, value] of getEntries(newNode)) {
     //@ts-expect-error This works, but the proxy makes the types confused
-    dictState[id][key] = value;
+    dictProxy[id][key] = value;
   }
 };
 

@@ -16,10 +16,13 @@ import {
 } from "../../@/components/ui/popover";
 
 const teamOptions = [
-  { value: "engineering", label: "Engineering" },
-  { value: "marketing", label: "Marketing" },
-  { value: "sales", label: "Sales" },
-  { value: "support", label: "Support" },
+  { value: "devSecOps", label: "DevSecOps" },
+  { value: "finance", label: "Finance" },
+  { value: "merchant-X", label: "Merchant-X" },
+  { value: "commerce", label: "Commerce" },
+  { value: "platform", label: "Platform" },
+  { value: "operations", label: "Operations" },
+  { value: "data", label: "Data" },
 ];
 
 export function AutoComplete() {

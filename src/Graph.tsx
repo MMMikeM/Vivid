@@ -6,7 +6,8 @@ import { Zoom } from "@visx/zoom";
 import { useSnapshot } from "valtio";
 import { Node } from "./components/Node";
 import { theme } from "./constants";
-import * as state from "./store/tree";
+import { ApiListNode, ApiTreeNode, dictProxy, dictToTree } from "./store/tree";
+import React from "react";
 
 const { background, lightpurple, orange, pink } = theme;
 
@@ -29,8 +30,8 @@ export default function Graph({
   const yMax = renderWidth - 2 * margin.y;
   const xMax = renderHeight - 2 * margin.x;
 
-  const snapshot = useSnapshot(state.dictState);
-  const data = hierarchy(state.dictToTree(snapshot));
+  const snapshot = useSnapshot(dictProxy);
+  const data = hierarchy(dictToTree(snapshot as Record<number, ApiListNode>));
 
   if (width < 10) return null;
 
@@ -63,7 +64,7 @@ export default function Graph({
           <LinearGradient id="lg" from={orange} to={pink} />
           <rect width={width} height={height} fill={background} />
           <g transform={zoom.toString()}>
-            <Tree<state.ApiTreeNode>
+            <Tree<ApiTreeNode>
               root={data}
               size={[xMax, yMax]}
               nodeSize={[60, 100]}

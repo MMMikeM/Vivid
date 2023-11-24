@@ -3,6 +3,7 @@ import Graph from "./Graph";
 import { Drawer } from "./components/Drawer";
 
 import { EditDialog } from "./components/EditDialog";
+import { Header } from "./components/Header";
 
 export default function App() {
   const ref = useRef<HTMLDivElement>(null);
@@ -29,7 +30,10 @@ export default function App() {
     <div>
       <EditDialog />
       <div ref={ref} className="h-screen w-screen overflow-hidden">
-        <Drawer />
+        <div className="w-screen h-14 bg-slate-700 fixed top-0 left-0 z-20">
+          <Drawer />
+          <Header />
+        </div>
         <Graph width={dimensions.width} height={dimensions.height} />
       </div>
     </div>

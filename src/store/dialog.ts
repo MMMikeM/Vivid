@@ -3,7 +3,7 @@ import { ApiObj } from "./tree";
 
 type DialogState = {
   open: boolean;
-  node?: ApiObj;
+  node?: ApiObj & { id: number };
 };
 
 const initialState: DialogState = { open: false };

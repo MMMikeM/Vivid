@@ -1,4 +1,5 @@
 import { proxy } from "valtio";
+import { faker } from "@faker-js/faker";
 
 type OldNode = TreeNodeBase<{
   name: string;
@@ -16,11 +17,34 @@ type ListNodeBase<T> = {
   parent?: number;
 } & T;
 
+export const typeOptions = [
+  "Lambda",
+  "HTTP",
+  "SNS",
+  "DynamoDB",
+  "EC2",
+  "SQS",
+  "S3",
+  "RDS",
+  "APIGateway",
+];
+export const teamOptions = [
+  "DevSecOps",
+  "Finance",
+  "Merchant-X",
+  "Commerce",
+  "Platform",
+  "Operations",
+  "Data",
+];
+
+export type Team = (typeof teamOptions)[number];
+
 export type ApiObj = {
   name: string;
-  type?: string;
+  type?: (typeof typeOptions)[number];
   description?: string;
-  team?: string;
+  team?: Team;
   documentationUrl?: string;
 };
 
@@ -29,6 +53,17 @@ export type ApiListNode = ListNodeBase<ApiObj>;
 export type ApiTreeNode = TreeNodeBase<ApiObj>;
 
 const getId = () => Math.floor(Math.random() * 10000);
+
+const mockData = (item: ApiListNode) => {
+  return {
+    ...item,
+    name: faker.company.buzzPhrase().split(" ").join("-"),
+    type: faker.helpers.arrayElement(typeOptions),
+    description: faker.lorem.paragraph().substring(0, 200), // Ensures description is not more than 200 characters
+    team: faker.helpers.arrayElement(teamOptions),
+    documentationUrl: faker.internet.url(),
+  } as ApiListNode;
+};
 
 const initialState: OldNode = {
   name: "T",
@@ -205,5 +240,6 @@ export const dictToTree = (nodes: Record<number, ApiListNode>): ApiTreeNode => {
 };
 
 const flat = flattenTree(initialState);
-const dictOfNodes = arrayToDict(flat);
+const flatWithMockData = flat.map(mockData);
+const dictOfNodes = arrayToDict(flatWithMockData);
 export const dictProxy = proxy(dictOfNodes);

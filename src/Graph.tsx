@@ -6,8 +6,7 @@ import { Zoom } from "@visx/zoom";
 import { useSnapshot } from "valtio";
 import { Node } from "./components/Node";
 import { theme } from "./constants";
-import { ApiListNode, ApiTreeNode, dictProxy, dictToTree } from "./store/tree";
-import React from "react";
+import { ApiTreeNode, dictProxy, dictToTree } from "./store/tree";
 
 const { background, lightpurple, orange, pink } = theme;
 
@@ -31,7 +30,7 @@ export default function Graph({
   const xMax = renderHeight - 2 * margin.x;
 
   const snapshot = useSnapshot(dictProxy);
-  const data = hierarchy(dictToTree(snapshot as Record<number, ApiListNode>));
+  const data = hierarchy(dictToTree(snapshot));
 
   if (width < 10) return null;
 
@@ -39,9 +38,9 @@ export default function Graph({
     <Zoom
       width={renderWidth}
       height={renderHeight}
-      scaleXMin={0.5}
+      scaleXMin={0.2}
       scaleXMax={2}
-      scaleYMin={0.5}
+      scaleYMin={0.2}
       scaleYMax={2}
     >
       {(zoom) => (
@@ -67,7 +66,7 @@ export default function Graph({
             <Tree<ApiTreeNode>
               root={data}
               size={[xMax, yMax]}
-              nodeSize={[60, 100]}
+              nodeSize={[400, 500]}
               separation={(a, b) => {
                 const siblings = a.parent?.children?.length ?? 0;
                 if (a.children) return 2;
@@ -86,8 +85,8 @@ export default function Graph({
                       fill="none"
                     />
                   ))}
-                  {tree.descendants().map((node, i) => (
-                    <Node key={`node-${i}`} node={node} />
+                  {tree.descendants().map((node) => (
+                    <Node key={`node-${node.data.id}`} node={node} />
                   ))}
                 </Group>
               )}

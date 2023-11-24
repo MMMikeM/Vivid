@@ -1,4 +1,3 @@
-import React from "react";
 import { Button } from "../../@/components/ui/button";
 import {
   Dialog,
@@ -14,15 +13,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { dialogProxy } from "../store/dialog";
 import { useSnapshot } from "valtio";
 import { AutoComplete } from "./AutoComplete";
-import { ApiListNode } from "../store/tree";
-import { mockData } from "../utils/mockData";
+import { dictProxy } from "../store/tree";
 
 export function EditDialog() {
   const dialogState = useSnapshot(dialogProxy);
 
-  const data = mockData({} as ApiListNode);
-
-  console.log("mockData", data);
+  if (!dialogState.node) return null;
 
   return (
     <Dialog open={dialogState.open}>
@@ -39,8 +35,8 @@ export function EditDialog() {
               Name
             </Label>
             <Input
-              value={data.name}
-              defaultValue=""
+              value={dialogState.node.name}
+              onChange={(e) => (dialogProxy.node!.name = e.target.value)}
               id="name"
               className="col-span-3"
             />
@@ -50,7 +46,12 @@ export function EditDialog() {
               Team
             </Label>
             <div className="col-span-3">
-              <AutoComplete />
+              <AutoComplete
+                value={dialogState.node.team!}
+                onSelect={(newVal) => {
+                  dialogProxy.node!.team = newVal;
+                }}
+              />
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
@@ -58,9 +59,9 @@ export function EditDialog() {
               Description
             </Label>
             <Textarea
-              defaultValue=""
-              value={data.description}
-              rows="10"
+              value={dialogState.node.description}
+              onChange={(e) => (dialogProxy.node!.description = e.target.value)}
+              rows={10}
               id="description"
               className="col-span-3"
             />
@@ -78,6 +79,10 @@ export function EditDialog() {
           <Button
             onClick={() => {
               dialogProxy.open = false;
+              dictProxy[dialogState.node!.id] = {
+                ...dictProxy[dialogState.node!.id],
+                ...dialogState.node!,
+              };
             }}
             type="submit"
           >

@@ -1,4 +1,3 @@
-import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "../../@/components/ui/button";
@@ -14,20 +13,17 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from "../../@/components/ui/popover";
+import { useState } from "react";
+import { Team, teamOptions } from "../store/tree";
 
-const teamOptions = [
-  { value: "devSecOps", label: "DevSecOps" },
-  { value: "finance", label: "Finance" },
-  { value: "merchant-X", label: "Merchant-X" },
-  { value: "commerce", label: "Commerce" },
-  { value: "platform", label: "Platform" },
-  { value: "operations", label: "Operations" },
-  { value: "data", label: "Data" },
-];
-
-export function AutoComplete() {
-  const [open, setOpen] = React.useState(false);
-  const [value, setValue] = React.useState("");
+const teamOptionsList: { value: string; label: Team }[] = teamOptions.map(
+  (team) => ({ value: team.toLowerCase(), label: team })
+);
+export function AutoComplete(props: {
+  value: string;
+  onSelect: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -38,8 +34,10 @@ export function AutoComplete() {
           aria-expanded={open}
           className="p-1 justify-between flex flex-row align-center w-full"
         >
-          {value
-            ? teamOptions.find((team) => team.value === value)?.label
+          {props.value
+            ? teamOptionsList.find(
+                (team) => team.value === props.value.toLowerCase()
+              )?.label
             : "Select Team..."}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -49,22 +47,22 @@ export function AutoComplete() {
           <CommandInput placeholder="Search..." />
           <CommandEmpty></CommandEmpty>
           <CommandGroup>
-            {teamOptions.map((team) => (
+            {teamOptionsList.map(({ value, label }) => (
               <CommandItem
-                key={team.value}
-                value={team.value}
+                key={value}
+                value={value}
                 onSelect={(currentValue) => {
-                  setValue(currentValue === value ? "" : currentValue);
+                  props.onSelect(currentValue);
                   setOpen(false);
                 }}
               >
                 <Check
                   className={cn(
                     "mr-2 h-4 w-4",
-                    value === team.value ? "opacity-100" : "opacity-0"
+                    props.value === value ? "opacity-100" : "opacity-0"
                   )}
                 />
-                {team.label}
+                {label}
               </CommandItem>
             ))}
           </CommandGroup>
